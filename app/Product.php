@@ -12,7 +12,7 @@ class Product extends Model {
      * @var array
      */
     protected $fillable = [
-        'user_id', 'title', 'description', 'price', 'address', 'latitude', 'longitude', 'likes'
+        'user_id', 'title', 'description', 'price', 'address', 'latitude', 'longitude', 'likes', 'stripe_product_id'
     ];
 
     /**

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
+use Stripe\StripeClient;
 use Validator;
 use App\User;
 use App\Services\SocialAccountsService;
@@ -95,9 +96,18 @@ class AuthController extends Controller {
         	return $this->respondValidateError($validator->errors()->first());
         }
 
+        $stripe = new \Stripe\StripeClient(
+            'sk_test_51HHXhBIRgEBXRvwcWNzQqmQAfzA9OWNxg3SpWyuYmaZDBkRBUbZuosJsMYNwf8JZfoq0hnpvZYA9vMR0eevzV3ks00J4QlD48N'
+        );
+        $customer = $stripe->customers->create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+        ]);
+
         $user = User::create(array_merge(
                     $validator->validated(),
-                    ['password' => bcrypt($request->password)]
+                    ['password' => bcrypt($request->password)],
+                    ['stripe_customer_id' => $customer['id']]
                 ));
 
         return $this->login($request);

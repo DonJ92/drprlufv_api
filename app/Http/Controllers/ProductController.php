@@ -126,6 +126,21 @@ class ProductController extends Controller
     {
         $params = $request->validated();
 
+        $stripe = new \Stripe\StripeClient(
+            'sk_test_51HHXhBIRgEBXRvwcWNzQqmQAfzA9OWNxg3SpWyuYmaZDBkRBUbZuosJsMYNwf8JZfoq0hnpvZYA9vMR0eevzV3ks00J4QlD48N'
+        );
+        $product = $stripe->products->create([
+            'name' => $request->input('title'),
+        ]);
+
+        $price = $stripe->prices->create([
+            'unit_amount' => (int)$request->input('price') * 100,
+            'currency' => 'usd',
+            'product' => $product['id'],
+        ]);
+
+        $params['stripe_product_id'] = $product['id'];
+
         $product = Product::create($params);
 
         if($request->hasfile('images'))

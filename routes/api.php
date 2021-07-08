@@ -39,6 +39,7 @@ Route::group([], function ($router) {
 });
 
 Route::group([], function ($router) {
+    Route::get('favourites', 'LikeController@index');
     Route::post('likes', 'LikeController@store');
 });
 

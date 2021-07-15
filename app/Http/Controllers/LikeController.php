@@ -72,7 +72,7 @@ class LikeController extends Controller
             }
 
             $max = count($rows) - 1;
-
+/*
             $result = array();
 
             while (count($result) < $count && count($result) != count($rows)) {
@@ -83,8 +83,8 @@ class LikeController extends Controller
                     continue;
                 array_push($result, $row);
             };
-
-            foreach ($result as $row) {
+*/
+            foreach ($rows as $row) {
                 $filenames = [];
 
                 $images = DB::table('images')->where('product_id', '=', $row->id)->get();
@@ -102,7 +102,7 @@ class LikeController extends Controller
             die();
         }
 
-        return $this->respondSuccess($result);
+        return $this->respondSuccess($rows);
     }
 
     /**

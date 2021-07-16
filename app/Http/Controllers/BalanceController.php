@@ -203,11 +203,11 @@ class BalanceController extends Controller
                 $withdraw_time = $withdraw_info->updated_at;
 
             $balance = Delivery::leftjoin('products', 'products.id', '=', 'delivery.product_id')
-                ->where('delivery.buyer_id', $data['user_id'])
+                ->where('delivery.seller_id', $data['user_id'])
                 ->where('delivery.updated_at', '>', $withdraw_time)
                 ->sum('products.price');
 
-            $result = array('balance' => $balance);
+            $result = array('balance' => (double)$balance);
         } catch (QueryException $e) {
             return $this->respondServerError($e->getMessage());
         }

@@ -93,6 +93,10 @@ class LikeController extends Controller
                 }
 
                 $row->filenames = $filenames;
+                $row->price = (double)$row->price;
+                $row->latitude = (double)$row->latitude;
+                $row->longitude = (double)$row->longitude;
+                $row->likes = (double)$row->likes;
 
                 $row->comments = DB::table('comments')->where('product_id', '=', $row->id)->count();
 

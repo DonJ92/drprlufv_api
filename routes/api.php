@@ -45,7 +45,6 @@ Route::group([], function ($router) {
     Route::post('likes', 'LikeController@store');
 });
 
-
 Route::group([
     'middleware' => 'jwt.verify',
 ], function ($router) {

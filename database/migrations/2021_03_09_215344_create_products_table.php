@@ -23,6 +23,7 @@ class CreateProductsTable extends Migration
             $table->float('latitude')->nullable();
             $table->float('longitude')->nullable();
             $table->integer('likes');
+            $table->string('stripe_product_id')->nullable();
             $table->timestamps();
         });
     }

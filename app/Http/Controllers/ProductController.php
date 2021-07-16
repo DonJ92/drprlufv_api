@@ -54,7 +54,7 @@ class ProductController extends Controller
             if (is_double($latitude) && is_double($longitude)) {
                 $distanceField = "111.111 * DEGREES(ACOS(LEAST(1.0, COS(RADIANS(latitude)) * COS(RADIANS({$latitude})) * COS(RADIANS(longitude - ${longitude}))" . " + SIN(RADIANS(latitude)) * SIN(RADIANS({$latitude}))))) AS distance";
 
-                $query = Product::select('products.*', 'users.image as user_icon', DB::raw($distanceField))
+                $query = Product::select('products.*', 'users.image as user_icon', DB::raw($distanceField), 'users.stripe_customer_id')
                     ->leftjoin('users', 'users.id', '=', 'products.user_id')
                     ->orderBy('distance', 'ASC')
                     ->orderBy('likes', 'DESC')
@@ -69,7 +69,7 @@ class ProductController extends Controller
                 }
                 $rows = $query->get();
             } else {
-                $query = Product::select('products.*', 'users.image as user_icon')
+                $query = Product::select('products.*', 'users.image as user_icon', 'users.stripe_customer_id')
                     ->leftjoin('users', 'users.id', '=', 'products.user_id')
                     ->orderBy('likes', 'DESC')
                     ->orderBy('created_at', 'DESC')
@@ -126,8 +126,10 @@ class ProductController extends Controller
     {
         $params = $request->validated();
 
+        $stripe_key = getenv('STRIPE_KEY');
+
         $stripe = new \Stripe\StripeClient(
-            'sk_test_51HHXhBIRgEBXRvwcWNzQqmQAfzA9OWNxg3SpWyuYmaZDBkRBUbZuosJsMYNwf8JZfoq0hnpvZYA9vMR0eevzV3ks00J4QlD48N'
+            $stripe_key
         );
         $product = $stripe->products->create([
             'name' => $request->input('title'),

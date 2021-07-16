@@ -52,7 +52,7 @@ class LikeController extends Controller
                 $query = ProductLike::leftjoin('products', 'products.id', '=', 'product_likes.product_id')
                     ->leftjoin('users', 'users.id', '=', 'product_likes.user_id')
                     ->where('product_likes.user_id', $user_id)
-                    ->select('products.*', 'users.image as user_icon', DB::raw($distanceField))
+                    ->select('products.*', 'users.image as user_icon', DB::raw($distanceField), 'users.stripe_customer_id')
                     ->orderBy('products.distance', 'ASC')
                     ->orderBy('products.likes', 'DESC')
                     ->orderBy('products.created_at', 'DESC')
@@ -63,7 +63,7 @@ class LikeController extends Controller
                 $query = ProductLike::leftjoin('products', 'products.id', '=', 'product_likes.product_id')
                     ->leftjoin('users', 'users.id', '=', 'product_likes.user_id')
                     ->where('product_likes.user_id', $user_id)
-                    ->select('products.*', 'users.image as user_icon')
+                    ->select('products.*', 'users.image as user_icon', 'users.stripe_customer_id')
                     ->orderBy('products.likes', 'DESC')
                     ->orderBy('products.created_at', 'DESC')
                     ->orderBy(DB::raw('RAND()'));

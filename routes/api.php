@@ -31,6 +31,8 @@ Route::group([
 	Route::post('users', 'UserController@store');
 	Route::put('users/{id}', 'UserController@update');
 	Route::delete('users/{id}', 'UserController@delete');
+
+    Route::post('activate_wallet', 'UserController@activateWallet');
 });
 
 
@@ -75,6 +77,18 @@ Route::group([], function ($router) {
     Route::get('profile', 'ProfileController@index');
 });
 
+Route::group([
+    'middleware' => 'jwt.verify',
+], function ($router) {
+    Route::post('charge', 'BalanceController@charge');
+    Route::post('confirm_purchase', 'BalanceController@confirmPurchase');
+    Route::post('withdraw', 'BalanceController@withdraw');
+});
+
+Route::group([], function ($router) {
+    Route::get('purchase', 'BalanceController@purchase');
+    Route::get('available_balance', 'BalanceController@availableBalance');
+});
 
 Route::group([
     'middleware' => 'jwt.verify',

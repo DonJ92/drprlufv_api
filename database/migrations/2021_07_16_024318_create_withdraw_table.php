@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateDeliveryTable extends Migration
+class CreateWithdrawTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,13 +13,10 @@ class CreateDeliveryTable extends Migration
      */
     public function up()
     {
-        Schema::create('delivery', function (Blueprint $table) {
+        Schema::create('withdraw', function (Blueprint $table) {
             $table->id();
-            $table->integer('seller_id');
-            $table->integer('buyer_id');
-            $table->integer('product_id');
-            $table->string('shipping_address');
-            $table->enum('status', ['0', '1', '2', '3'])->default('0');
+            $table->integer('user_id');
+            $table->integer('withdraw_amount');
             $table->timestamps();
         });
     }
@@ -31,6 +28,6 @@ class CreateDeliveryTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('delivery');
+        Schema::dropIfExists('withdraw');
     }
 }

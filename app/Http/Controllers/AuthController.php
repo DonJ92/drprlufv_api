@@ -96,8 +96,10 @@ class AuthController extends Controller {
         	return $this->respondValidateError($validator->errors()->first());
         }
 
+        $stripe_key = getenv('STRIPE_KEY');
+
         $stripe = new \Stripe\StripeClient(
-            'sk_test_51HHXhBIRgEBXRvwcWNzQqmQAfzA9OWNxg3SpWyuYmaZDBkRBUbZuosJsMYNwf8JZfoq0hnpvZYA9vMR0eevzV3ks00J4QlD48N'
+            $stripe_key
         );
         $customer = $stripe->customers->create([
             'name' => $request->input('name'),

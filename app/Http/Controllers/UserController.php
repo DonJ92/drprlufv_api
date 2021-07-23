@@ -328,7 +328,7 @@ class UserController extends Controller
             if (empty($stripe_account->individual->verification->document->front)) {
                 $document_front = $stripe->files->create([
                     'purpose' => 'identity_document',
-                    'file' => fopen(public_path('identify') . '\\' . $document, 'r'),
+                    'file' => fopen(public_path('identify') . '/' . $document, 'r'),
                 ]);
 
                 $params['individual']['verification']['document']['front'] = $document_front->id;

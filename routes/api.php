@@ -33,8 +33,13 @@ Route::group([
 	Route::delete('users/{id}', 'UserController@delete');
 
     Route::post('activate_wallet', 'UserController@activateWallet');
+    Route::post('add_payment_method', 'UserController@addPaymentMethod');
+    Route::post('verify_payment', 'UserController@verifyPayment');
 });
 
+Route::group([], function ($router) {
+    Route::get('get_payment_info', 'UserController@getPaymentInfo');
+});
 
 Route::group([], function ($router) {
     Route::get('products', 'ProductController@index');

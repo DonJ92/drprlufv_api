@@ -54,6 +54,7 @@ class BalanceController extends Controller
             $delivery_info = Delivery::create([
                 'seller_id' => $data['seller_id'],
                 'buyer_id' => $data['buyer_id'],
+                'amount' => $data['amount'] * 100,
                 'product_id' => $data['product_id'],
                 'shipping_address' => $data['shipping_address'],
                 'status' => 0,
@@ -168,6 +169,23 @@ class BalanceController extends Controller
         if (!is_array($transfer_info))
             $this->respondServerError('Transfer API Failed');
 
+		\Stripe\Stripe::setApiKey($stripe_key);
+		$balance = \Stripe\Balance::retrieve(
+		  ['stripe_account' => $user_info->stripe_acct_id]
+		);
+		$amount = $balance->available[0]->amount;
+
+		if ($amount < $request->amount) {
+			return json_encode(array('status' => 0, 'message' => 'Insufficient money'));
+		}
+
+		$payout = \Stripe\Payout::create([
+		  'amount' => $request->amount * 100,
+		  'currency' => 'usd',
+		], [
+		  'stripe_account' => $user_info->stripe_acct_id,
+		]);
+
         try {
             $withdraw_info = Withdraw::create([
                 'user_id' => $data['user_id'],
@@ -205,6 +223,7 @@ class BalanceController extends Controller
             $balance = Delivery::leftjoin('products', 'products.id', '=', 'delivery.product_id')
                 ->where('delivery.seller_id', $data['user_id'])
                 ->where('delivery.updated_at', '>', $withdraw_time)
+                ->where('delivery.status', '1')
                 ->sum('products.price');
 
             $result = array('balance' => (double)$balance);

@@ -15,7 +15,7 @@ class Delivery extends Model
      * @var array
      */
     protected $fillable = [
-        'seller_id', 'buyer_id', 'product_id', 'shipping_address', 'state'
+        'seller_id', 'buyer_id', 'product_id', 'amount', 'shipping_address', 'state'
     ];
 
     /**

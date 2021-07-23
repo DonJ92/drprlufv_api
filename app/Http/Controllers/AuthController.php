@@ -101,6 +101,16 @@ class AuthController extends Controller {
         $stripe = new \Stripe\StripeClient(
             $stripe_key
         );
+
+        $stripeAccount = $stripe->accounts->create([
+            'type' => 'custom',
+            'email' => $request->input('email'),
+            'capabilities' => [
+                'card_payments' => ['requested' => true],
+                'transfers' => ['requested' => true],
+            ],
+        ]);
+
         $customer = $stripe->customers->create([
             'name' => $request->input('name'),
             'email' => $request->input('email'),
@@ -109,7 +119,8 @@ class AuthController extends Controller {
         $user = User::create(array_merge(
                     $validator->validated(),
                     ['password' => bcrypt($request->password)],
-                    ['stripe_customer_id' => $customer['id']]
+                    ['stripe_customer_id' => $customer['id']],
+                    ['stripe_acct_id' => $stripeAccount['id']]
                 ));
 
         return $this->login($request);

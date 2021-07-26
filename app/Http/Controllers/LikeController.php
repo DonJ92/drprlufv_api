@@ -52,6 +52,7 @@ class LikeController extends Controller
                 $query = ProductLike::leftjoin('products', 'products.id', '=', 'product_likes.product_id')
                     ->leftjoin('users', 'users.id', '=', 'product_likes.user_id')
                     ->where('product_likes.user_id', $user_id)
+                    ->where('products.visible', 1)
                     ->select('products.*', 'users.image as user_icon', DB::raw($distanceField), 'users.stripe_customer_id')
                     ->orderBy('products.distance', 'ASC')
                     ->orderBy('products.likes', 'DESC')
@@ -63,6 +64,7 @@ class LikeController extends Controller
                 $query = ProductLike::leftjoin('products', 'products.id', '=', 'product_likes.product_id')
                     ->leftjoin('users', 'users.id', '=', 'product_likes.user_id')
                     ->where('product_likes.user_id', $user_id)
+                    ->where('products.visible', 1)
                     ->select('products.*', 'users.image as user_icon', 'users.stripe_customer_id')
                     ->orderBy('products.likes', 'DESC')
                     ->orderBy('products.created_at', 'DESC')
@@ -93,6 +95,7 @@ class LikeController extends Controller
                 }
 
                 $row->filenames = $filenames;
+                $row->user_id = (int)$row->user_id;
                 $row->price = (double)$row->price;
                 $row->latitude = (double)$row->latitude;
                 $row->longitude = (double)$row->longitude;

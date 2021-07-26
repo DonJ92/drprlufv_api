@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 
 use App\Delivery;
+use App\Product;
 use App\User;
 use App\Withdraw;
 use Illuminate\Database\QueryException;
@@ -59,6 +60,14 @@ class BalanceController extends Controller
                 'shipping_address' => $data['shipping_address'],
                 'status' => 0,
             ]);
+
+            $product_info = Product::where('id', $data['product_id'])->first();
+            if (is_null($product_info))
+                $this->respondNotFoundError('There is no product info.');
+
+            $product_info->visible = 2;
+            $product_info->save();
+
         } catch (QueryException $e) {
             return $this->respondServerError($e->getMessage());
         }
@@ -97,10 +106,12 @@ class BalanceController extends Controller
             }
 
             $row->filenames = $filenames;
+            $row->user_id = (int)$row->user_id;
             $row->price = (double)$row->price;
             $row->latitude = (double)$row->latitude;
             $row->longitude = (double)$row->longitude;
             $row->likes = (double)$row->likes;
+            $row->delivery_id = (int)$row->delivery_id;
 
             $row->comments = DB::table('comments')->where('product_id', '=', $row->id)->count();
         }

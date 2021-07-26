@@ -56,6 +56,7 @@ class ProductController extends Controller
 
                 $query = Product::select('products.*', 'users.image as user_icon', DB::raw($distanceField), 'users.stripe_customer_id')
                     ->leftjoin('users', 'users.id', '=', 'products.user_id')
+                    ->where('products.visible', 1)
                     ->orderBy('distance', 'ASC')
                     ->orderBy('likes', 'DESC')
                     ->orderBy('created_at', 'DESC')
@@ -71,6 +72,7 @@ class ProductController extends Controller
             } else {
                 $query = Product::select('products.*', 'users.image as user_icon', 'users.stripe_customer_id')
                     ->leftjoin('users', 'users.id', '=', 'products.user_id')
+                    ->where('products.visible', 1)
                     ->orderBy('likes', 'DESC')
                     ->orderBy('created_at', 'DESC')
                     ->orderBy(DB::raw('RAND()'));

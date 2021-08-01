@@ -87,6 +87,7 @@ Route::group([
     Route::post('charge', 'BalanceController@charge');
     Route::post('confirm_purchase', 'BalanceController@confirmPurchase');
     Route::post('withdraw', 'BalanceController@withdraw');
+    Route::post('refund', 'BalanceController@refund');
 });
 
 Route::group([], function ($router) {

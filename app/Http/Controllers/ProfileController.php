@@ -41,7 +41,12 @@ class ProfileController extends Controller
         $row = $query->first();
 
         if ($row) {
-        	$products = Product::where('user_id', '=', $request->user_id)->get();
+        	$products = Product::leftjoin('delivery', 'products.id', '=', 'delivery.product_id')
+                ->where('products.user_id', '=', $request->user_id)
+                ->where('products.visible', 1)
+                ->where('delivery.status', '<', 3)
+                ->select('products.*', 'delivery.status')
+                ->get();
 
         	foreach ($products as $product) {            
 	            $filenames = [];

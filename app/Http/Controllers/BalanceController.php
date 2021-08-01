@@ -57,6 +57,7 @@ class BalanceController extends Controller
                 'buyer_id' => $data['buyer_id'],
                 'amount' => $data['amount'] * 100,
                 'product_id' => $data['product_id'],
+                'charge_id' => $charge['id'],
                 'shipping_address' => $data['shipping_address'],
                 'status' => 0,
             ]);
@@ -89,7 +90,7 @@ class BalanceController extends Controller
 
         try {
             $result = Delivery::leftjoin('products', 'products.id', '=', 'delivery.product_id')
-                ->select('products.*', 'delivery.seller_id', 'delivery.buyer_id', 'delivery.id as delivery_id')
+                ->select('products.*', 'delivery.seller_id', 'delivery.buyer_id', 'delivery.id as delivery_id', 'delivery.charge_id')
                 ->where('delivery.buyer_id', $data['user_id'])
                 ->where('delivery.status', '0')
                 ->get();
@@ -247,5 +248,64 @@ class BalanceController extends Controller
         }
 
         return $this->respondSuccess($result);
+    }
+
+    public function refund(Request $request)
+    {
+        $data = $request->all();
+
+        $validator = Validator::make($data, [
+            'user_id' => 'required|exists:users,id',
+            'delivery_id' => 'required|exists:delivery,id',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->respondValidateError($validator->errors()->first());
+        }
+
+        try {
+            $delivery_info = Delivery::where('id', $data['delivery_id'])
+                ->where('buyer_id', $data['user_id'])
+                ->first();
+
+            if (is_null($delivery_info)) {
+                $delivery_info = Delivery::where('id', $data['delivery_id'])
+                    ->where('seller_id', $data['user_id'])
+                    ->first();
+                if (is_null($delivery_info))
+                    return $this->respondNotFoundError('No delivery info');
+
+                $stripe_key = getenv('STRIPE_KEY');
+
+                $stripe = new \Stripe\StripeClient(
+                    $stripe_key
+                );
+
+                $refund = $stripe->refunds->create([
+                    'charge' => 'ch_1JJXyJ2eZvKYlo2CQqJFmfWY',
+                ]);
+
+                if (!is_array($refund))
+                    $this->respondServerError('Refunds API Failed');
+
+                $delivery_info->status = '3';
+                $delivery_info->save();
+
+                $product_info = Product::where('id', $delivery_info->product_id)->first();
+
+                if (is_null($product_info))
+                    return $this->respondNotFoundError('No product info');
+
+                $product_info->visible = 1;
+                $product_info->save();
+            } else {
+                $delivery_info->status = '2';
+                $delivery_info->save();
+            }
+        } catch (QueryException $e) {
+            return $this->respondServerError($e->getMessage());
+        }
+
+        return $this->respondSuccess(array('status' => 1));
     }
 }

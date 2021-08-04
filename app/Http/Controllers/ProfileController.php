@@ -43,9 +43,9 @@ class ProfileController extends Controller
         if ($row) {
         	$products = Product::leftjoin('delivery', 'products.id', '=', 'delivery.product_id')
                 ->where('products.user_id', '=', $request->user_id)
-                ->where('products.visible', 1)
-                ->where('delivery.status', '<', 3)
                 ->select('products.*', 'delivery.status')
+                ->orderby('delivery.updated_at', 'desc')
+                ->offset(0)->limit(1)
                 ->get();
 
         	foreach ($products as $product) {            
@@ -56,6 +56,7 @@ class ProfileController extends Controller
 	                array_push($filenames, $image->filename);
 	            }
 
+                $product->status = (int)$product->status;
 	            $product->filenames = $filenames;
 	            $product->likes = DB::table('product_likes')->where('product_id', '=', $product->id)->count();
             	$product->comments = DB::table('comments')->where('product_id', '=', $product->id)->count();

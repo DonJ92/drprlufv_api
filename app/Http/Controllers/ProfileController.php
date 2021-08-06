@@ -43,26 +43,33 @@ class ProfileController extends Controller
         if ($row) {
         	$products = Product::leftjoin('delivery', 'products.id', '=', 'delivery.product_id')
                 ->where('products.user_id', '=', $request->user_id)
-                ->select('products.*', 'delivery.status')
+                ->select('products.*', 'delivery.id as delivery_id', 'delivery.status', 'delivery.updated_at as delivery_updated_at')
                 ->orderby('delivery.updated_at', 'desc')
-                ->offset(0)->limit(1)
-                ->get();
+                ->get()->toArray();
 
-        	foreach ($products as $product) {            
+            $product_list = array();
+
+        	foreach ($products as $product) {
+                if (in_array($product['id'], array_column($product_list, 'id')))
+                    continue;
+
 	            $filenames = [];
 
-	            $images = DB::table('images')->where('product_id', '=', $product->id)->get();
+	            $images = DB::table('images')->where('product_id', '=', $product['id'])->get();
 	            foreach ($images as $image) {
 	                array_push($filenames, $image->filename);
 	            }
 
-                $product->status = (int)$product->status;
-	            $product->filenames = $filenames;
-	            $product->likes = DB::table('product_likes')->where('product_id', '=', $product->id)->count();
-            	$product->comments = DB::table('comments')->where('product_id', '=', $product->id)->count();
+                $product['delivery_id'] = is_null($product['delivery_id']) ? 0 : (int)$product['delivery_id'];
+                $product['status'] = is_null($product['status']) ? -1 : (int)$product['status'];
+	            $product['filenames'] = $filenames;
+	            $product['likes'] = DB::table('product_likes')->where('product_id', '=', $product['id'])->count();
+            	$product['comments'] = DB::table('comments')->where('product_id', '=', $product['id'])->count();
+
+                $product_list[] = $product;
 	        }
 
-	        $row->products = $products;	        
+	        $row->products = $product_list;	        
         }
 
         return $this->respondSuccess($row);        

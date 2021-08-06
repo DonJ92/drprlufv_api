@@ -27,7 +27,7 @@ class Delivery extends Model
         'seller_id' => 'integer',
         'buyer_id' => 'integer',
         'product_id' => 'integer',
-        'charge_id' => 'integer',
+        'charge_id' => 'string',
     ];
 
 }

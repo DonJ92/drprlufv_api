@@ -90,9 +90,8 @@ class BalanceController extends Controller
 
         try {
             $result = Delivery::leftjoin('products', 'products.id', '=', 'delivery.product_id')
-                ->select('products.*', 'delivery.seller_id', 'delivery.buyer_id', 'delivery.id as delivery_id', 'delivery.charge_id')
+                ->select('products.*', 'delivery.seller_id', 'delivery.buyer_id', 'delivery.id as delivery_id', 'delivery.charge_id', 'delivery.status')
                 ->where('delivery.buyer_id', $data['user_id'])
-                ->where('delivery.status', '0')
                 ->get();
         } catch (QueryException $e) {
             return $this->respondServerError($e->getMessage());
@@ -113,6 +112,7 @@ class BalanceController extends Controller
             $row->longitude = (double)$row->longitude;
             $row->likes = (double)$row->likes;
             $row->delivery_id = (int)$row->delivery_id;
+            $row->status = (int)$row->status;
 
             $row->comments = DB::table('comments')->where('product_id', '=', $row->id)->count();
         }
@@ -282,7 +282,7 @@ class BalanceController extends Controller
                 );
 
                 $refund = $stripe->refunds->create([
-                    'charge' => 'ch_1JJXyJ2eZvKYlo2CQqJFmfWY',
+                    'charge' => $delivery_info->charge_id
                 ]);
 
                 if (!is_array($refund))

@@ -15,7 +15,7 @@ class Delivery extends Model
      * @var array
      */
     protected $fillable = [
-        'seller_id', 'buyer_id', 'product_id', 'charge_id', 'amount', 'shipping_address', 'state'
+        'seller_id', 'buyer_id', 'product_id', 'charge_id', 'capture_id', 'amount', 'shipping_address', 'state'
     ];
 
     /**
@@ -28,6 +28,7 @@ class Delivery extends Model
         'buyer_id' => 'integer',
         'product_id' => 'integer',
         'charge_id' => 'string',
+        'capture_id' => 'string',
     ];
 
 }

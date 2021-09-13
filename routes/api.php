@@ -85,6 +85,7 @@ Route::group([
     'middleware' => 'jwt.verify',
 ], function ($router) {
     Route::post('charge', 'BalanceController@charge');
+    Route::post('checkout', 'BalanceController@checkOut');
     Route::post('confirm_purchase', 'BalanceController@confirmPurchase');
     Route::post('withdraw', 'BalanceController@withdraw');
     Route::post('refund', 'BalanceController@refund');

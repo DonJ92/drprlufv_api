@@ -11,6 +11,9 @@ use Illuminate\Database\QueryException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use PayPalCheckoutSdk\Payments\CapturesRefundRequest;
+use PaypalPayoutsSDK\Payouts\PayoutsPostRequest;
+use Sample\PayPalClient;
 
 class BalanceController extends Controller
 {
@@ -58,6 +61,51 @@ class BalanceController extends Controller
                 'amount' => $data['amount'] * 100,
                 'product_id' => $data['product_id'],
                 'charge_id' => $charge['id'],
+                'shipping_address' => $data['shipping_address'],
+                'status' => 0,
+            ]);
+
+            $product_info = Product::where('id', $data['product_id'])->first();
+            if (is_null($product_info))
+                $this->respondNotFoundError('There is no product info.');
+
+            $product_info->visible = 2;
+            $product_info->save();
+
+        } catch (QueryException $e) {
+            return $this->respondServerError($e->getMessage());
+        }
+
+        return $this->respondSuccess($delivery_info);
+    }
+
+	public function checkOut(Request $request)
+    {
+        $data = $request->all();
+
+        $validator = Validator::make($data, [
+            'transaction_id' => 'required|string',
+            'amount' => 'required',
+            'shipping_address' => 'required|string',
+            'product_id' => 'required|exists:products,id',
+            'buyer_id' => 'required|exists:users,id',
+            'seller_id' => 'required|exists:users,id',
+            'capture_id' => 'required',
+        ]);
+
+        if ($validator->fails()) {
+            return $this->respondValidateError($validator->errors()->first());
+        }
+
+        try {
+            $delivery_info = Delivery::create([
+                'seller_id' => $data['seller_id'],
+                'buyer_id' => $data['buyer_id'],
+                'amount' => $data['amount'],
+                'product_id' => $data['product_id'],
+                'charge_id' => 0,
+                'capture_id' => $data['capture_id'],
+                'transaction_id' => $data['transaction_id'],
                 'shipping_address' => $data['shipping_address'],
                 'status' => 0,
             ]);
@@ -153,6 +201,7 @@ class BalanceController extends Controller
 
         $validator = Validator::make($data, [
             'user_id' => 'required|exists:users,id',
+            'email' => 'required|email',
             'amount' => 'required|numeric',
         ]);
 
@@ -160,6 +209,7 @@ class BalanceController extends Controller
             return $this->respondValidateError($validator->errors()->first());
         }
 
+        /*
         try {
             $user_info = User::where('id', $data['user_id'])->first();
             if (is_null($user_info))
@@ -169,7 +219,35 @@ class BalanceController extends Controller
         } catch (QueryException $e) {
             return $this->respondNotFoundError($e->getMessage());
         }
+        */
 
+        $request = new PayoutsPostRequest();
+        $body= json_decode(
+            '{
+                "sender_batch_header":
+                {
+                  "email_subject": "SDK payouts test txn"
+                },
+                "items": [
+                {
+                  "recipient_type": "EMAIL",
+                  "receiver": "'.$data['email'].'",
+                  "note": "Your '.$data['amount'].'$ payout",
+                  "sender_item_id": "Test_txn_12",
+                  "amount":
+                  {
+                    "currency": "USD",
+                    "value": "'.$data['amount'].'"
+                  }
+                }]
+              }',
+            true);
+        $request->body = $body;
+        $client = PayPalClient::client();
+        $response = $client->execute($request);
+
+// Disable Stripe withdraw
+/*
         $stripe_key = getenv('STRIPE_KEY');
 
         $stripe = new \Stripe\StripeClient(
@@ -201,7 +279,7 @@ class BalanceController extends Controller
 		], [
 		  'stripe_account' => $user_info->stripe_acct_id,
 		]);
-
+*/
         try {
             $withdraw_info = Withdraw::create([
                 'user_id' => $data['user_id'],
@@ -275,7 +353,19 @@ class BalanceController extends Controller
                 if (is_null($delivery_info))
                     return $this->respondNotFoundError('No delivery info');
 
-                $stripe_key = getenv('STRIPE_KEY');
+                $request = new CapturesRefundRequest($delivery_info->capture_id);
+
+                $request->body = array(
+                    'amount' =>
+                        array(
+                            'value' => $delivery_info->amount,
+                            'currency_code' => 'USD'
+                        )
+                );
+                $client = PayPalClient::client();
+                $response = $client->execute($request);
+
+/*                $stripe_key = getenv('STRIPE_KEY');
 
                 $stripe = new \Stripe\StripeClient(
                     $stripe_key
@@ -287,6 +377,7 @@ class BalanceController extends Controller
 
                 if (!is_array($refund))
                     $this->respondServerError('Refunds API Failed');
+                */
 
                 $delivery_info->status = '3';
                 $delivery_info->save();
